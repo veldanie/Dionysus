@@ -2,12 +2,23 @@ project                     (Dionysus)
 cmake_minimum_required      (VERSION 2.4)
 
 option                      (logging            "Build Dionysus with logging on"        OFF)
+# option                      (logging            "Build Dionysus with logging on"        ON)
 option                      (counters           "Build Dionysus with counters on"       OFF)
 option                      (debug              "Build Dionysus with debugging on"      OFF)
 option                      (optimize           "Build Dionysus with optimization"      ON)
 option                      (use_cgal           "Build examples and python bindings that use CGAL"       ON)
 option                      (use_dsrpdb         "Build examples that use DSR-PDB"       OFF)
 option                      (use_synaps         "Build examples that use SYNAPS"        OFF)
+
+
+
+
+if(logging)
+message("logging is ON")
+else(logging)
+message("logging is OFF")
+endif(logging)
+
 
 # Find everything that's always required
 find_package                (Boost REQUIRED COMPONENTS program_options python serialization signals)
@@ -77,6 +88,35 @@ if                          (DOXYGEN_FOUND)
 #                           ${DOXYGEN_EXECUTABLE} Doxyfile
 #                           DEPENDS Doxyfile)
 endif                       (DOXYGEN_FOUND)
+
+# fixing doxygen
+# set (DOXYFILE_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/doc")
+set (DOXYFILE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+# if (DOXYGEN_FOUND STREQUAL "NO")
+# message("creating ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile ...")
+# configure_file(
+	# ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Doxyfile.in
+	# ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+# )
+# add doxygen as target
+add_custom_target(
+    doxygen COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE_SOURCE_DIR}/Doxyfile
+    COMMENT "Writing documentation to ${DOXYFILE_OUTPUT_DIR}..."
+)
+  
+# cleanup $build/api-doc on "make clean"
+set_property(DIRECTORY APPEND PROPERTY
+    ADDITIONAL_MAKE_CLEAN_FILES doc)
+
+# add doxygen as dependency to doc-target
+get_target_property(DOC_TARGET doc TYPE)
+if(NOT DOC_TARGET)
+    add_custom_target(doc)
+endif()
+add_dependencies(doc doxygen)
+
+
+
 
 # Process subdirectories
 add_subdirectory            (examples)

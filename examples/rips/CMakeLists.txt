@@ -1,4 +1,5 @@
 set                         (targets                        
+							r
                              rips
                              rips-pairwise
                              rips-weighted
