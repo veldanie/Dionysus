@@ -2,6 +2,8 @@
 #include <utility>
 #include <boost/utility.hpp>
 #include <iostream>
+using std::cerr;
+using std::endl;
 #include <utilities/log.h>
 #include <utilities/counter.h>
 #include <utilities/indirect.h>
@@ -13,32 +15,62 @@ static rlog::RLogChannel* rlRips =                  DEF_CHANNEL("rips/info", rlo
 static rlog::RLogChannel* rlRipsDebug =             DEF_CHANNEL("rips/debug", rlog::Log_Debug);
 #endif // LOGGING
 
+
+
 #ifdef COUNTERS
 static Counter*  cClique =                          GetCounter("rips/clique");
 #endif // COUNTERS
 
+
+
 template<class D, class S>
 template<class Functor, class Iterator>
 void
 Rips<D,S>::
-generate(Dimension k, DistanceType max, const Functor& f, Iterator bg, Iterator end) const
+	generate(
+		Dimension k, 
+		DistanceType max, 
+		const Functor& f, 
+		Iterator bg, 
+		Iterator end
+	) const
 {
-    rLog(rlRipsDebug,       "Entered generate with %d indices", distances().size());
+cerr << "Rips::generate:"
+<< "max = " << max 
+<< endl;
+	rLog(rlRipsDebug, "Entered generate with %d indices", distances().size());
 
-    WithinDistance neighbor(distances(), max);
+	WithinDistance neighbor(distances(), max);
 
-    // current      = empty
-    // candidates   = everything
-    VertexContainer current;
-    VertexContainer candidates(bg, end);
-    bron_kerbosch(current, candidates, boost::prior(candidates.begin()), k, neighbor, f);
+	// current = empty
+	// candidates = everything
+	VertexContainer current;
+	VertexContainer candidates(bg, end);
+
+	bron_kerbosch(
+		current,
+		candidates,
+		boost::prior(candidates.begin()),
+		k,
+		neighbor,
+		f
+	);
 }
 
+
+
 template<class D, class S>
 template<class Functor, class Iterator>
 void
 Rips<D,S>::
-vertex_cofaces(IndexType v, Dimension k, DistanceType max, const Functor& f, Iterator bg, Iterator end) const
+	vertex_cofaces(
+		IndexType v,
+		Dimension k,
+		DistanceType max,
+		const Functor& f,
+		Iterator bg,
+		Iterator end
+	) const
 {
     WithinDistance neighbor(distances(), max);
 
@@ -51,6 +83,8 @@ vertex_cofaces(IndexType v, Dimension k, DistanceType max, const Functor& f, Ite
             candidates.push_back(*cur);
     bron_kerbosch(current, candidates, boost::prior(candidates.begin()), k, neighbor, f);
 }
+
+
 
 template<class D, class S>
 template<class Functor, class Iterator>
@@ -77,6 +111,8 @@ edge_cofaces(IndexType u, IndexType v, Dimension k, DistanceType max, const Func
 
     bron_kerbosch(current, candidates, boost::prior(candidates.begin()), k, neighbor, f);
 }
+
+
 
 template<class D, class S>
 template<class Functor, class Iterator>
@@ -115,24 +151,32 @@ cofaces(const Simplex& s, Dimension k, DistanceType max, const Functor& f, Itera
 }
 
 
+
+
 template<class D, class S>
 template<class Functor, class NeighborTest>
 void
 Rips<D,S>::
-bron_kerbosch(VertexContainer&                          current,    
-              const VertexContainer&                    candidates,     
-              typename VertexContainer::const_iterator  excluded,
-              Dimension                                 max_dim,    
-              const NeighborTest&                       neighbor,       
-              const Functor&                            functor,
-              bool                                      check_initial) const
+	bron_kerbosch(
+		VertexContainer&                          current,    
+		const VertexContainer&                    candidates,     
+		typename VertexContainer::const_iterator  excluded,
+		Dimension                                 max_dim,    
+		const NeighborTest&                       neighbor,       
+		const Functor&                            functor,
+		bool                                      check_initial) const
 {
     rLog(rlRipsDebug,       "Entered bron_kerbosch");
-    
+
+// cerr << "Entered bron_kerbosch" 
+// << "(" << current.size() << ", " << candidates.size() << ")"
+// << endl;
+
     if (check_initial && !current.empty())
     {
         Simplex s(current);
         rLog(rlRipsDebug,   "Reporting simplex: %s", tostring(s).c_str());
+		// cerr << "Reporting simplex: " << s << endl;
         functor(s);
     }
 
@@ -140,25 +184,50 @@ bron_kerbosch(VertexContainer&                          current,
         return;
 
     rLog(rlRipsDebug,       "Traversing %d vertices", candidates.end() - boost::next(excluded));
-    for (typename VertexContainer::const_iterator cur = boost::next(excluded); cur != candidates.end(); ++cur)
+
+    for (typename VertexContainer::const_iterator cur 
+					= boost::next(excluded);
+		cur != candidates.end();
+		++cur)
     {
         current.push_back(*cur);
+
         rLog(rlRipsDebug,   "  current.size() = %d, current.back() = %d", current.size(), current.back());
 
         VertexContainer new_candidates;
-        for (typename VertexContainer::const_iterator ccur = candidates.begin(); ccur != cur; ++ccur)
-            if (neighbor(*ccur, *cur))
-                new_candidates.push_back(*ccur);
+        for (typename VertexContainer::const_iterator ccur 
+							= candidates.begin();
+			ccur != cur;
+			++ccur)
+		if (neighbor(*ccur, *cur))
+			new_candidates.push_back(*ccur);
+
         size_t ex = new_candidates.size();
-        for (typename VertexContainer::const_iterator ccur = boost::next(cur); ccur != candidates.end(); ++ccur)
-            if (neighbor(*ccur, *cur))
-                new_candidates.push_back(*ccur);
+        for (typename VertexContainer::const_iterator ccur
+							= boost::next(cur);
+				ccur != candidates.end();
+				++ccur)
+		if (neighbor(*ccur, *cur))
+			new_candidates.push_back(*ccur);
+
         excluded  = new_candidates.begin() + (ex - 1);
 
-        bron_kerbosch(current, new_candidates, excluded, max_dim, neighbor, functor);
+        bron_kerbosch(
+			current,
+			new_candidates,
+			excluded,
+			max_dim,
+			neighbor,
+			functor
+		);
+
         current.pop_back();
     }
-}
+
+}	// Rips::bron_kerbosch
+
+
+
 
 template<class Distances_, class Simplex_>
 typename Rips<Distances_, Simplex_>::DistanceType
@@ -171,6 +240,8 @@ distance(const Simplex& s1, const Simplex& s2) const
             mx = std::max(mx, distances_(*a,*b));
     return mx;
 }
+
+
 
 template<class Distances_, class Simplex_>
 typename Rips<Distances_, Simplex_>::DistanceType
