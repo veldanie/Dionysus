@@ -98,7 +98,9 @@ int
 cerr << "LOGGING" << endl;
   rlog::RLogInit(argc, argv);
 
-  stderrLog.subscribeTo( RLOG_CHANNEL("error") );
+  //stderrLog.subscribeTo( RLOG_CHANNEL("topology/cohomology") );
+  //stderrLog.subscribeTo( RLOG_CHANNEL("topology/*") );
+  stderrLog.subscribeTo( RLOG_CHANNEL("*") );
 #endif
 
   Timer total, remove, add, ec, vc;
@@ -169,7 +171,6 @@ cerr << "paired simplices" << endl;
 	Persistence::SimplexMap<Fltr> m = p.make_simplex_map(f);
 cerr << "made simplex map" << endl;
 cerr << "------------------------------------" << endl;
-cerr << m;
 cerr << "------------------------------------" << endl;
 // total.check ("Total timer ");
 

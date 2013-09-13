@@ -1,17 +1,17 @@
 project                     (Dionysus)
 cmake_minimum_required      (VERSION 2.4)
 
-option                      (logging            "Build Dionysus with logging on"        OFF)
+option                      (logging            "Build Dionysus with logging on"        ON)
 # option                      (logging            "Build Dionysus with logging on"        ON)
 option                      (counters           "Build Dionysus with counters on"       OFF)
-option                      (debug              "Build Dionysus with debugging on"      OFF)
+option                      (debug              "Build Dionysus with debugging on"      ON)
 option                      (optimize           "Build Dionysus with optimization"      ON)
 option                      (use_cgal           "Build examples and python bindings that use CGAL"       ON)
 option                      (use_dsrpdb         "Build examples that use DSR-PDB"       OFF)
 option                      (use_synaps         "Build examples that use SYNAPS"        OFF)
 
 
-
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_INTRINSIC_INT64_T")
 
 if(logging)
 message("logging is ON")
